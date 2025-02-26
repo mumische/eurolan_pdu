@@ -1,0 +1,111 @@
+{
+    "zabbix_export": {
+        "version": "6.4",
+        "template_groups": [
+            {
+                "uuid": "7df96b18c230490a9a0a9e2307226338",
+                "name": "Templates"
+            }
+        ],
+        "templates": [
+            {
+                "uuid": "a949abe4a04a43cbbc5c6d988660b7bf",
+                "template": "Template Eurolan 60A-65-55-24BL PDU",
+                "name": "Template Eurolan 60A-65-55-24BL PDU",
+                "groups": [
+                    {
+                        "name": "Templates"
+                    }
+                ],
+                "items": [
+                    {
+                        "uuid": "e5b450efd14b4af097298682ea9b68de",
+                        "name": "\u0422\u043e\u043a",
+                        "type": "SNMP_AGENT",
+                        "snmp_oid": "SNMPv2-SMI::enterprises.17420.1.2.9.1.11.0",
+                        "key": "current",
+                        "history": "7d",
+                        "trends": "0",
+                        "value_type": "FLOAT",
+                        "preprocessing": [
+                            {
+                                "type": "JAVASCRIPT",
+                                "parameters": [
+                                    "return (value*0.1).toFixed(1);"
+                                ]
+                            }
+                        ],
+                        "triggers": [
+                            {
+                                "uuid": "5f7ccab62e2e4ac2920cc6487cdad9dd",
+                                "expression": "avg(/Template Eurolan 60A-65-55-24BL PDU/current,#3)>12",
+                                "name": "\u0422\u043e\u043a \u043d\u0430 {HOST.NAME} \u043f\u0440\u0435\u0432\u044b\u0448\u0430\u0435\u0442 12\u0410",
+                                "priority": "WARNING"
+                            }
+                        ]
+                    },
+                    {
+                        "uuid": "d49a775f58b3402bbdfab68915979fe9",
+                        "name": "\u0421\u0442\u0430\u0442\u0443\u0441 \u0440\u043e\u0437\u0435\u0442\u043e\u043a",
+                        "type": "SNMP_AGENT",
+                        "snmp_oid": "1.3.6.1.4.1.17420.1.2.9.1.13.0",
+                        "key": "outlet.status",
+                        "history": "7d",
+                        "trends": "0",
+                        "value_type": "CHAR"
+                    }
+                ],
+                "discovery_rules": [
+                    {
+                        "uuid": "3e3ed3f6c0454c84b029b5d6fa49967f",
+                        "name": "Outlet discovery",
+                        "type": "SNMP_AGENT",
+                        "snmp_oid": "discovery[{#SNMPVALUE},.1.3.6.1.4.1.17420.1.2.9.1.14]",
+                        "key": "outlet.discovery",
+                        "delay": "30m",
+                        "lifetime": "7d",
+                        "item_prototypes": [
+                            {
+                                "uuid": "826aa67ccd1d42cc9591e5a1f6355479",
+                                "name": "{#SNMPVALUE}",
+                                "type": "DEPENDENT",
+                                "key": "outlet[{#SNMPINDEX}]",
+                                "delay": "0",
+                                "history": "7d",
+                                "trends": "0",
+                                "value_type": "CHAR",
+                                "preprocessing": [
+                                    {
+                                        "type": "JAVASCRIPT",
+                                        "parameters": [
+                                            "s = value.split(',')\nreturn s[{#SNMPINDEX}-1]"
+                                        ]
+                                    }
+                                ],
+                                "master_item": {
+                                    "key": "outlet.status"
+                                },
+                                "trigger_prototypes": [
+                                    {
+                                        "uuid": "7e00ef45022b4e80840ab61a6c91292f",
+                                        "expression": "last(/Template Eurolan 60A-65-55-24BL PDU/outlet[{#SNMPINDEX}],#1)<>1",
+                                        "name": "\u0420\u043e\u0437\u0435\u0442\u043a\u0430 {#SNMPVALUE} \u043d\u0435 \u0412\u041a\u041b",
+                                        "priority": "AVERAGE"
+                                    }
+                                ]
+                            }
+                        ],
+                        "preprocessing": [
+                            {
+                                "type": "JAVASCRIPT",
+                                "parameters": [
+                                    "var records = JSON.parse(value);\n\n// Update discover JSON records to include HOSTNAME LLD macro\nfor (i = 0; i < records.length; i++) {\n    var matches = ((records[i][\"{#SNMPINDEX}\"]).match(/\\d+/g));\n    var match_value = ((records[i][\"{#SNMPVALUE}\"]).match(/\\w+/g));\n    records[i]['{#SNMPINDEX}'] = matches[0];\n    records[i]['{#SNMPVALUE}'] = match_value[0];\n}\nreturn JSON.stringify(records);\n"
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
